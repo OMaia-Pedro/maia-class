@@ -1,0 +1,1 @@
+{"root":["./src/App.tsx","./src/main.tsx","./src/interface/BarraFerramentas.tsx","./src/interface/Quadro.tsx","./src/modulos/caneta.ts","./src/motor/camera.ts","./src/motor/documento.ts","./src/motor/pintor.ts"],"version":"5.7.3"}
