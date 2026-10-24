@@ -6,6 +6,8 @@ Este documento orienta qualquer agente de IA trabalhando no repositório **Maia 
 
 ## 1. Organização do Repositório
 - `.agent/` e `docs/`: Apenas documentação, decisões de design, manuais e regras.
+  - Consulte obrigatoriamente [docs/plano-completo.md](docs/plano-completo.md) para a lista de funcionalidades, roadmap e decisões consolidadas.
+  - Consulte [docs/design-system.md](docs/design-system.md) para tokens visuais, paletas e UI.
 - `app/`: Código-fonte exclusivo da aplicação. Nenhuma dependência de documentação ou histórico de chat deve entrar aqui.
 
 ---
