@@ -1,274 +1,162 @@
-# Plano de Desenvolvimento — Quadro Infinito "Maia Class"
+# Plano de Desenvolvimento — Maia Class
 
-## Objetivo
+Roteiro do projeto: **o que é construído em cada fase, e em que ordem**.
+- O pedido original, palavra por palavra, está em [requisitos.md](requisitos.md) (ele prevalece sobre os resumos daqui).
+- As decisões e seus motivos estão em [decisoes.md](decisoes.md).
+- Como o programa funciona por dentro: [arquitetura.md](arquitetura.md).
 
-Criar um caderno/quadro branco infinito para escrever à mão com caneta (S Pen, Apple Pencil, mesa digitalizadora). Ele precisa ter:
+---
 
-- **zoom infinito**, sem o traço ficar pixelado;
+## 1. Visão geral
+
+Caderno/quadro branco infinito para escrita à mão com caneta (S Pen, Wacom, Apple Pencil):
+- zoom infinito (para os lados e "para dentro"), sem o traço pixelar;
 - ferramentas de desenho, formas inteligentes, texto, PDF e exportação;
-- possibilidade de virar **app Android** e ter **colaboração em tempo real** no futuro.
+- **comercial, 100% offline, interface em português, arquitetura estritamente modular.**
 
-Você vai construir tudo com *vibe coding*. Por isso, cada decisão abaixo também levou em conta o seguinte: **a IA consegue programar e consertar isso com segurança?**
-
----
-
-## 1. As grandes decisões (resumo)
-
-| Tema | Decisão | Por quê, em uma frase |
+| Prioridade | Objetivo | Situação |
 |---|---|---|
-| Onde roda | **Navegador primeiro**, depois o mesmo código vira app Android | Um código só para manter |
-| Linguagem | **TypeScript** (JavaScript com "corretor ortográfico") | A IA erra menos, porque os erros aparecem antes de você testar |
-| Motor do quadro | **Feito sob medida**, usando peças prontas e gratuitas | Nenhum motor pronto tem zoom infinito "para dentro" + licença livre |
-| Como o desenho é pintado na tela | **Canvas** (uma "tela de pintura" do navegador), redesenhada a partir dos dados do traço | Traço sempre nítido em qualquer zoom e baixa latência |
-| Onde os dados ficam | **Yjs** (um "caderno de dados" feito para colaboração), salvo no próprio aparelho | Já nasce pronto para a Prioridade 3, sem reescrever nada |
-| Menus e botões | **React** | É o que a IA mais conhece, então menos erros |
-| Android | **Mesmo código web, "embrulhado" num app (Capacitor)**, com uma peça nativa pequena só para a tinta e o botão da S Pen | Respondo sua pergunta na [seção 4](#4-sua-pergunta-sobre-o-android) |
-| Colaboração | **Liveblocks** (serviço pronto) usando o mesmo Yjs | Já traz os níveis visualizar / comentar / editar |
-| Ferramenta de vibe coding | **Antigravity (este ambiente) + Git/GitHub** | Um projeto gráfico sob medida precisa de uma IA que rode, teste e corrija no seu computador |
-| Publicação na internet | **Cloudflare Pages** (gratuito) | Link HTTPS para testar no tablet e celular |
+| 1 | Navegador, com latência mínima da caneta | Foco atual |
+| 2 | App Android (Galaxy Tab S6 Lite) | Fase 10 |
+| 3 | Colaboração em tempo real | **Em espera** (D-10) |
 
 ---
 
-## 2. Por que essas escolhas (opções investigadas)
+## 2. Decisões principais (resumo)
 
-### 2.1 Usar um quadro pronto ou construir o nosso?
-
-| Opção | Prós | Contras | Veredito |
-|---|---|---|---|
-| **tldraw** | Muito polido, tem pressão da caneta | **Licença paga** para uso comercial (ou marca d'água "made with tldraw"). Zoom limitado. Personalizar a borracha parcial, a régua de ângulos etc. é brigar com o motor | ❌ |
-| **Excalidraw** | Gratuito | Feito para diagramas, não para escrita à mão. Zoom limitado (até 30x) | ❌ |
-| **Konva / Fabric / Pixi** (bibliotecas gráficas genéricas) | Ajudam a desenhar | Não resolvem o zoom infinito nem a latência. Acabaríamos reescrevendo metade | ❌ |
-| **Motor próprio + peças prontas** | Controle total sobre latência, zoom infinito, formatos e plugins | Mais trabalho no início | ✅ **Escolhido** |
-
-As "peças prontas" (todas gratuitas e de código aberto) que vamos usar:
-- **perfect-freehand**: transforma pontos e pressão da caneta num traço bonito (modo "fluido").
-- **Yjs**: guarda os dados, faz o desfazer/refazer e, no futuro, a colaboração.
-- **pdf.js** (da Mozilla): abre PDFs nítidos em qualquer zoom.
-- **jsPDF**: exporta PDF **vetorial**, ou seja, o traço continua nítido dentro do PDF.
-- **rbush**: um "índice" que encontra rapidamente quais traços estão visíveis, para não desenhar o que está fora da tela.
-
-### 2.2 Como garantir que o traço não fica pixelado
-Cada traço é guardado como uma **receita**, e não como uma foto: a lista de pontos, a pressão em cada ponto, a cor, a espessura e o estilo. A cada zoom, a tela é **repintada a partir da receita**, na resolução exata da tela. É por isso que dá para ampliar 1.000x e o traço continua liso.
-
-> [!NOTE]
-> **Zoom realmente infinito.** O computador tem um limite de casas decimais. Num zoom absurdo (um milhão de vezes ou mais), os pontos começariam a "tremer". A solução vai ser feita na Fase 3: dividir o mundo em **"andares de escala"**, como bonecas russas. Ao passar de certo zoom, a câmera "desce um andar" e as contas recomeçam com números pequenos. Desde o primeiro dia, cada objeto já guarda em qual "andar" está, então nada precisa ser refeito depois.
-
-### 2.3 Como chegar perto da "latência zero" no navegador
-Latência zero de verdade não existe. A meta é que **o traço pareça colado na ponta da caneta**. Quatro técnicas, combinadas:
-1. **Duas camadas de tela.** Uma camada leve desenha só o traço que está sendo feito agora ("tinta molhada"). A outra guarda todo o resto ("tinta seca"). Assim, nunca é preciso redesenhar o quadro inteiro enquanto você escreve.
-2. **Modo "sem espera" da tela.** O navegador entrega o desenho direto, sem sincronizar com o resto da página.
-3. **Todos os pontos da caneta.** A caneta envia mais pontos do que a tela mostra, e capturamos todos. Também usamos a **previsão** de onde a caneta vai estar no próximo instante.
-4. **Tinta delegada.** No Chrome, Edge e Samsung Internet, o sistema operacional desenha a pontinha do traço antes mesmo do nosso código. Isso funciona no **Chrome para Android** e no Windows.
-
-> [!IMPORTANT]
-> No fim da Fase 1 haverá um **teste de latência no seu tablet de verdade**. Esse é o momento-chave do projeto: se a sensação for boa, seguimos. Se não for, antecipamos a peça nativa do Android (seção 4).
-
-### 2.4 Espessura "real" e "virtual"
-As duas são salvas do mesmo jeito. Muda apenas a forma como o controle deslizante se comporta:
-- **Real**: "quero 3 px **na tela agora**". Se você estiver com zoom de 400%, o traço é salvo 4x mais fino no quadro.
-- **Virtual**: "quero 3 px **como se o zoom fosse 100%**".
+| Tema | Decisão | Ref. |
+|---|---|---|
+| Onde roda | Navegador primeiro; o mesmo código vira app Android | D-09 |
+| Linguagem | TypeScript (modo estrito) | D-07 |
+| Motor do quadro | Próprio, com peças livres | D-06 |
+| Desenho | Canvas 2D redesenhado a partir dos dados vetoriais | D-07 |
+| Dados | Yjs, salvos no aparelho (IndexedDB) | D-08 |
+| Menus | React (só a casca) | D-07 |
+| Android | Capacitor + peça nativa pequena (Jetpack Ink) | D-09 |
+| Colaboração | Em espera; quando ativada, servidor próprio de código aberto (Hocuspocus) | D-10 |
+| Reconhecimento de letra | Endireitar linhas: geometria, offline. Transformar em texto: ML Kit no Android; navegador em espera | D-11 |
+| Licenças | MIT, Apache-2.0, BSD, ISC, OFL. Exceção: ML Kit, só no Android | D-12 |
+| Programação | Claude, via vibe coding, sob comando do autor | D-16 |
 
 ---
 
-## 3. Arquitetura (o "esqueleto" do programa)
+## 3. Por que essas escolhas
 
-```mermaid
-flowchart TD
-    subgraph Entrada
-        C["Caneta / dedo / mouse"]
-    end
-    subgraph Motor["Motor do quadro (TypeScript puro, sem React)"]
-        E["Captura de entrada<br/>pressão, inclinação, botão, previsão"]
-        F["Ferramentas<br/>caneta, borracha, laço, formas..."]
-        D["Documento (Yjs)<br/>traços, formas, textos, imagens"]
-        R["Pintor<br/>camadas: fundo, tinta seca, tinta molhada"]
-        CAM["Câmera<br/>posição, zoom, andares de escala"]
-    end
-    subgraph Interface["Interface (React)"]
-        M["Menu móvel, opções, configurações"]
-    end
-    subgraph Extras["Plugins"]
-        P["Formas inteligentes, reconhecimento de letra,<br/>exportação, futuros: editor de funções, GIFs"]
-    end
-    C --> E --> F --> D --> R
-    CAM --> R
-    M <--> F
-    P <--> F
-    P <--> D
-    D <-.-> S["Salvar no aparelho<br/>(e depois: nuvem / colaboração)"]
-```
+### 3.1 Motor pronto x motor próprio
+| Opção | Problema | Veredito |
+|---|---|---|
+| tldraw | Licença comercial paga ou marca d'água; zoom limitado; difícil personalizar borracha parcial, ângulos etc. | ❌ |
+| Excalidraw | Feito para diagramas; zoom limitado (até 30×) | ❌ |
+| Konva / Fabric / Pixi | Não resolvem zoom infinito nem latência | ❌ |
+| **Motor próprio + peças livres** | Mais trabalho no início; controle total | ✅ |
 
-**Princípio que mantém o código limpo para extensões:** *toda ferramenta é um plugin*, inclusive a caneta e a borracha. Um plugin pode:
-- registrar uma **ferramenta** (que aparece no menu);
-- registrar um **tipo de objeto** (que sabe se desenhar, ser selecionado e ser exportado);
-- abrir uma **janela redimensionável** dentro do quadro (por exemplo, o futuro editor de funções matemáticas).
+### 3.2 Traço sempre nítido
+Cada traço é salvo como uma **receita** (pontos, pressão, cor, espessura, estilo), nunca como foto. A cada zoom, a tela é repintada a partir da receita, na resolução exata da tela.
 
-Se as ferramentas principais usam a mesma "tomada" que os plugins futuros, essa tomada com certeza vai funcionar quando chegar a hora.
+**Zoom realmente infinito:** o computador tem limite de casas decimais. A solução são os **"andares de escala"**, como bonecas russas: ao passar de certo zoom, a câmera "desce um andar" e as contas recomeçam com números pequenos. Cada objeto guarda seu andar desde a Fase 1; a troca de andares é feita na Fase 3.
 
-**Um pintor, três destinos:** o mesmo código que pinta na tela também "pinta" dentro do PDF (vetorial) e da imagem exportada. Assim a exportação fica idêntica ao que você vê.
+### 3.3 Latência mínima no navegador
+1. **Duas camadas:** "tinta molhada" (só o traço atual) e "tinta seca" (o resto).
+2. **Modo "sem espera"** da tela de desenho.
+3. **Todos os pontos da caneta**, mais a **previsão** do próximo ponto.
+4. **Tinta delegada:** o sistema desenha a pontinha do traço antes do nosso código (Chrome/Edge/Samsung Internet). **Só funciona em conexão segura**, então o teste no tablet é feito via cabo USB (D-22).
 
----
+### 3.4 Espessura "real" e "virtual"
+Ambas são salvas em unidades do quadro. Muda só o controle deslizante:
+- **Real:** "3 px na tela agora". Com zoom de 400%, o traço é salvo 4× mais fino.
+- **Virtual:** "3 px como se o zoom fosse 100%".
 
-## 4. Sua pergunta sobre o Android
-
-> *"O aplicativo deve ser mantido em HTML, CSS e JavaScript? Ou a parte do quadro deve ser reescrita em outra linguagem?"*
-
-**Resposta: fica tudo em HTML, CSS e JavaScript (TypeScript). Só a "tinta molhada" ganha uma peça nativa pequena, e apenas se o teste mostrar que é necessário.**
-
-| Opção | Latência S Pen | Botão da S Pen | Trabalho | Veredito |
+### 3.5 Android
+| Opção | Latência | Botão S Pen | Trabalho | Veredito |
 |---|---|---|---|---|
-| **A. PWA** (o site "instalado" como app pelo Chrome) | Boa (tem tinta delegada) | ⚠️ Só funciona com a caneta pairando, não encostada | Quase zero | ✅ 1º passo |
-| **B. Capacitor** (o site dentro de um app de verdade) **+ peça nativa de tinta** (biblioteca oficial do Android, ~4 ms) | Excelente | ✅ Funciona sempre | Médio: 95% do código é compartilhado | ✅ **Destino final** |
-| C. Reescrever tudo em Kotlin (nativo) | Excelente | ✅ | Enorme: dois programas para manter, e a colaboração precisaria ser refeita | ❌ |
-| D. Flutter / React Native | Boa | ✅ | Reescrever tudo, sem ganho real | ❌ |
+| A. PWA (site instalável) | Boa | ⚠️ Só com a caneta pairando | Quase zero | ✅ 1º passo |
+| B. Capacitor + tinta nativa (~4 ms) | Excelente | ✅ | Médio (95% compartilhado) | ✅ Destino final |
+| C. Reescrever em Kotlin | Excelente | ✅ | Enorme, dois programas | ❌ |
+| D. Flutter / React Native | Boa | ✅ | Reescrever tudo | ❌ |
 
-Como funciona a opção B: quando a S Pen toca a tela, uma camada nativa transparente desenha o traço instantaneamente. Quando você levanta a caneta, ela entrega os pontos para o nosso código web, que guarda e exibe o traço "seco". É o mesmo truque dos melhores apps de notas.
-
-A mesma peça nativa resolve também o **botão da S Pen** e o **reconhecimento de letra offline e gratuito** (Google ML Kit).
+Na opção B, uma camada nativa transparente desenha o traço instantaneamente enquanto a caneta toca a tela; ao levantar a caneta, os pontos são entregues ao código web, que salva e exibe o traço "seco". A mesma peça nativa resolve o botão da S Pen e o reconhecimento de letra (ML Kit).
 
 ---
 
-## 5. Pontos de atenção (limitações reais)
+## 4. Limitações conhecidas
 
 > [!WARNING]
-> **Botão da S Pen no navegador (Funções Extras 2 e 3):** o Chrome do Android intercepta o botão quando a caneta está encostada na tela. No navegador, as funções do botão vão funcionar **com a caneta pairando** e em **mesas digitalizadoras no PC** (Wacom etc.). A versão completa, com o botão pressionado durante o traço, vem no app Android (Fase 10). O **Apple Pencil** não tem botão acessível pelo navegador. No iPad, vamos oferecer um atalho alternativo (por exemplo, toque com dois dedos).
+> **Botão da S Pen no navegador:** o Chrome do Android intercepta o botão quando a caneta encosta na tela. No navegador, as funções do botão (Extras 2 e 3) funcionam **com a caneta pairando** e **na Wacom no PC**. A versão completa vem no app Android (Fase 10). O Apple Pencil não tem botão acessível pelo navegador.
 
 > [!WARNING]
-> **Reconhecimento de letra (Função Extra 5b) no navegador:** não existe reconhecedor embutido no Chrome do Android nem do PC. Opções:
-> - **Web:** enviar o trecho escrito para a IA do Google (Gemini), que lê bem letra cursiva em português e fórmulas. Custo de centavos por mês para uso pessoal, exige internet.
-> - **App Android:** Google ML Kit, gratuito e offline.
->
-> Vamos construir o reconhecimento como uma peça "trocável", para usar o melhor de cada plataforma.
->
-> Já o **endireitar linhas (5a)** não precisa ler as letras. Dá para fazer só com geometria (achar a linha de base e alinhar), então funciona offline em todo lugar.
+> **Transformar letra em texto (Extra 5b) no navegador:** não existe hoje reconhecedor gratuito, offline e bom para cursiva em português. Fica em espera no navegador; no app Android, usa o ML Kit (no aparelho; o pacote do idioma é baixado uma vez). **Endireitar linhas (5a)** funciona em todo lugar, só com geometria.
 
 > [!NOTE]
-> **Preencher (balde de tinta):** em formas reconhecidas, o preenchimento é perfeito. Em contornos feitos à mão, o programa detecta a região fechada e cria uma "mancha" **vetorial** que a preenche. Ela também não pixela.
+> **Colaboração:** colaborar pela internet exige pelo menos um servidor no meio. Quando ativada, será um servidor próprio de código aberto, sem mensalidade de terceiros. Os dados já nascem no formato certo (Yjs), então ligar a colaboração não exige reescrita.
+
+> [!NOTE]
+> **Preencher:** em formas reconhecidas, o preenchimento é exato. Em contornos à mão, o programa detecta a região fechada e cria uma mancha **vetorial** (não pixela).
+
+> [!NOTE]
+> **Wacom no Fedora (Wayland):** a pressão no Chrome funciona, mas já teve falhas em algumas versões. Ela é verificada na Fase 0, antes de qualquer código.
 
 ---
 
-## 6. Etapas de desenvolvimento
+## 5. Fases
 
-Cada fase termina com **algo que você consegue testar no tablet**. Nada avança sem teste.
+Cada fase termina com algo testável nos aparelhos de referência. Nada avança sem teste.
 
 ```mermaid
 flowchart LR
     F0["0 Preparação"] --> F1["1 Caneta + câmera<br/>TESTE DE LATÊNCIA"]
-    F1 --> F2["2 Marca-texto, borracha,<br/>seleção"]
+    F1 --> F2["2 Marca-texto,<br/>borracha, seleção"]
     F2 --> F3["3 Zoom infinito real<br/>+ desempenho"]
     F3 --> F4["4 Formas inteligentes<br/>+ preencher"]
-    F4 --> F5["5 Texto, imagens, PDF,<br/>configurações de página"]
-    F5 --> F6["6 Exportar"]
-    F6 --> F7["7 Menu móvel, botão,<br/>gestos"]
-    F7 --> F8["8 Letra: alinhar<br/>e reconhecer"]
-    F8 --> F9["9 Plugins<br/>(1º exemplo)"]
+    F4 --> F5["5 Texto, imagens,<br/>PDF, página"]
+    F5 --> F6["6 Exportar<br/>+ backup"]
+    F6 --> F7["7 Menu móvel,<br/>botão, gestos"]
+    F7 --> F8["8 Caligrafia"]
+    F8 --> F9["9 Plugins"]
     F9 --> F10["10 App Android"]
-    F10 --> F11["11 Colaboração"]
+    F10 -.-> F11["11 Colaboração<br/>(em espera)"]
 ```
 
-| Fase | O que entrega | Itens do seu pedido |
+| Fase | O que entrega | Requisitos |
 |---|---|---|
-| **0. Preparação** | Ferramentas instaladas, projeto criado, regras para a IA, backup no GitHub, link de teste na internet | — |
-| **1. Caneta + câmera** | Quadro infinito com arrastar/zoom (pinça, roda do mouse); caneta fluida e uniforme, cores, espessura real/virtual, pontilhado/tracejado; desfazer/refazer; salvamento automático; fundos (liso, grade, pontilhado, linhas, partitura). **Medidor de latência** | Caneta 1a–c, Config. 9a |
-| **2. Edição básica** | Marca-texto (fica atrás da tinta); borracha parcial e de traço inteiro; seleção por laço/retângulo, opção "parcialmente selecionados", mover, redimensionar, girar, trazer para frente/enviar para trás | 2, 3, 4 |
-| **3. Zoom infinito real** | "Andares de escala"; teste de estresse com 20 mil traços sem engasgar | Zoom infinito |
-| **4. Formas inteligentes** | Reconhecer reta, seta, círculo/elipse, polígonos de 3 a 10 lados, estrela, coração; deixar regular quando a forma estiver próxima; segurar a caneta parada no fim do traço para corrigir; alças nos vértices; mostrar ângulos; polígono regular; centro/focos e distância focal; pontas de seta; balde de tinta | 5, 6, Extra 1 |
-| **5. Conteúdo** | Caixa de texto (desenhar a área antes; fonte, tamanho, negrito, itálico, sub/sobrescrito, sublinhado, cor, alinhamento); importar imagens e PDF (o PDF desliga a tela infinita); modo noturno, cor de fundo, molduras A4, liga/desliga tela infinita | 7, 8, 9 |
-| **6. Exportar** | Imagem (você enquadra a área); PDF vetorial respeitando as molduras A4 (ou criando-as automaticamente) | 10 |
-| **7. Menus e caneta** | Menu arrastável para as quatro bordas; configuração da função do botão; gestos que abrem mini-menus ao lado da caneta | Extras 2, 3, 4 |
-| **8. Caligrafia** | Endireitar linhas e tamanhos; selecionar texto manuscrito e transformá-lo em caixa de texto | Extra 5 |
-| **9. Plugins** | Formalizar a "tomada" de plugins e criar um 1º plugin de exemplo (uma janela com gráfico de função) | Extra 6 |
-| **10. Android** | PWA instalável; depois app Capacitor com tinta nativa, botão da S Pen completo e reconhecimento offline | Prioridade 2 |
-| **11. Colaboração** | Contas, link de compartilhamento, permissões (visualizar/comentar/editar), cursores dos colegas ao vivo | Prioridade 3 |
+| **0. Preparação** | Versões atualizadas das peças; verificação automática (compilar + testes + guardião da modularidade); **teste de pressão da Wacom no Fedora**; teste no tablet via cabo USB funcionando; backup no GitHub | — |
+| **1. Caneta + câmera** | Quadro com arrastar e zoom (pinça, roda do mouse); caneta fluida/uniforme, paleta, espessura real/virtual, contínuo/pontilhado/tracejado; **rejeição de palma**; desfazer/refazer; salvamento automático; fundos (liso, grade, pontilhado, linhas, partitura); modo noturno com inversão de tintas; **biblioteca mínima de cadernos**; menu simples fixo; **medidor de latência** | 1a–c, 9a, 9b |
+| **2. Edição básica** | Marca-texto (atrás da tinta); borracha parcial e de traço inteiro (com espessura real/virtual); seleção por laço/retângulo, "parcialmente selecionados" liga/desliga, mover/girar/redimensionar, frente/trás; ponta-borracha da Wacom | 2, 3, 4 |
+| **3. Zoom infinito real** | Andares de escala; índice espacial; nível de detalhe; teste de estresse com 20 mil traços no S6 Lite | Zoom infinito |
+| **4. Formas inteligentes** | Reconhecer reta, seta, círculo/elipse, polígonos (3–10 lados), estrela, coração; regularizar quando próximo; "segurar parado" corrige; alças nos vértices; mostrar ângulos; polígono regular; centro/focos e distância focal; pontas de seta; balde de tinta | 5, 6, Extra 1 |
+| **5. Conteúdo e página** | Caixa de texto (área desenhada antes; fonte, tamanho, negrito, itálico, sub/sobrescrito, sublinhado, cor, alinhamento); fontes empacotadas; importar imagens e PDF (desliga a tela infinita); cor do papel; molduras A4; tela infinita liga/desliga | 7, 8, 9c–e |
+| **6. Exportar + backup** | Imagem (enquadrar área); PDF vetorial por molduras A4 (cria molduras se desligadas); backup/restauração em arquivo `.maia` | 10, D-21 |
+| **7. Menus e caneta** | Menu arrastável para as quatro bordas; configuração da função do botão da caneta; gestos que abrem mini-menus junto à caneta; atalhos de teclado | Extras 2, 3, 4 |
+| **8. Caligrafia** | Endireitar linhas e tamanhos (offline, todas as plataformas); estrutura trocável do reconhecedor (navegador em espera) | Extra 5a (5b parcial) |
+| **9. Plugins** | Formalizar a tomada de plugins e janelas no quadro; 1º plugin de exemplo (gráfico de função) | Extra 6 |
+| **10. Android** | PWA instalável; app Capacitor com tinta nativa, botão da S Pen completo e transformar letra em texto (ML Kit) | Prioridade 2, Extra 5b |
+| **11. Colaboração** | **Em espera.** Servidor próprio (Hocuspocus), link de compartilhamento, permissões visualizar/comentar/editar, cursores ao vivo | Prioridade 3 |
 
 > [!TIP]
-> **Ordem pensada para reduzir risco:** primeiro atacamos o que pode inviabilizar o projeto (latência e zoom, Fases 1 e 3). As funcionalidades "bonitas" vêm depois, sobre uma base comprovada.
+> **Ordem pensada para reduzir risco:** primeiro o que pode inviabilizar o projeto (latência na Fase 1, zoom e desempenho na Fase 3). O resto é construído sobre uma base comprovada.
 
 ---
 
-## 7. Como vamos trabalhar no vibe coding (regras de ouro)
+## 6. Como trabalhar no vibe coding
 
-1. **Um pedido por vez, pequeno.** "Adicionar pontilhado na caneta" é melhor do que "fazer a caneta toda".
-2. **Arquivo de regras para a IA (`AGENTS.md`).** Toda IA que abrir o projeto lê esse arquivo antes de começar. Ele descreve a arquitetura, os nomes das pastas e as proibições (por exemplo: "nunca coloque lógica de desenho dentro do React"). Isso impede que o código vire bagunça com o tempo.
-3. **Testes automáticos.** A IA escreve testes para a parte de geometria (reconhecer formas, ângulos, borracha), que é a mais fácil de quebrar sem ninguém perceber.
-4. **Git = botão de "voltar no tempo".** Cada etapa funcionando vira um "ponto salvo" no GitHub. Se algo quebrar, voltamos.
-5. **Testar no aparelho real ao fim de cada fase.** O link de teste abre direto no tablet.
-
----
-
-## 8. O que será criado agora (Fases 0 e 1)
-
-### Preparação do computador
-- Instalar **Node.js** (o "motor" que roda as ferramentas de programação). Você precisará rodar **um comando com sua senha**: `sudo dnf install nodejs`.
-- Criar o repositório no **GitHub** (vou te guiar).
-
-### Estrutura de pastas do projeto
-
-```
-Maia Class/
-├── AGENTS.md                  [NEW] regras e mapa do projeto para a IA
-├── package.json               [NEW] lista de peças usadas
-├── index.html                 [NEW]
-├── docs/decisoes.md           [NEW] registro das decisões deste plano
-└── src/
-    ├── core/                  [NEW] motor (sem React)
-    │   ├── camera/            posição, zoom, andar de escala
-    │   ├── documento/         modelo de dados (Yjs) + salvar no aparelho
-    │   ├── entrada/           captura da caneta, previsão, tinta delegada
-    │   ├── pintor/            camadas: fundo, tinta seca, tinta molhada
-    │   ├── geometria/         contas reutilizáveis
-    │   └── plugins/           a "tomada" de plugins
-    ├── ferramentas/caneta/    [NEW] 1ª ferramenta, já como plugin
-    ├── objetos/traco/         [NEW] como um traço se desenha/seleciona/exporta
-    ├── interface/             [NEW] menus em React
-    └── testes/                [NEW]
-```
-
-### Referência técnica (para a IA, não precisa entender)
-
-```ts
-// Todo objeto do quadro segue este formato básico
-interface ObjetoBase {
-  id: string;
-  tipo: 'traco' | 'forma' | 'texto' | 'imagem' | 'paginaPdf' | string; // string = plugins
-  andar: number;          // "andar de escala" do zoom infinito
-  x: number; y: number;   // origem local do objeto
-  rotacao: number;
-  ordem: string;          // posição na pilha (frente/trás)
-}
-interface Traco extends ObjetoBase {
-  tipo: 'traco';
-  pontos: Float32Array;   // x, y, pressão, inclinação, tempo (relativos à origem)
-  modo: 'fluido' | 'uniforme';
-  cor: string; espessura: number;   // espessura sempre em unidades do quadro
-  estilo: 'continuo' | 'pontilhado' | 'tracejado';
-  marcaTexto?: boolean;
-}
-```
+1. **Um pedido por vez, pequeno, dentro de um módulo só.** "Adicionar pontilhado na caneta" é melhor do que "fazer a caneta toda".
+2. **As IAs seguem o [AGENTS.md](../AGENTS.md)** (o Claude o lê através do `CLAUDE.md`).
+3. **Testes automáticos** para a geometria (formas, ângulos, borracha), a parte mais fácil de quebrar sem ninguém perceber.
+4. **Verificação antes de concluir:** compilar + testes + guardião da modularidade.
+5. **Git como "voltar no tempo":** cada etapa que funciona vira um ponto salvo, com backup no GitHub.
+6. **Teste no aparelho real ao fim de cada fase** (tablet via cabo USB, Wacom no PC).
 
 ---
 
-## Perguntas em aberto & Decisões consolidadas
+## 7. Verificação
 
-> [!IMPORTANT]
-> **Decisões aprovadas:**
-> 1. **Uso comercial:** Sim, o produto será comercializado. Foco total em bibliotecas com licença 100% livre (MIT / Apache 2.0). Nenhuma dependência com royalties ou travas de licença.
-> 2. **Aparelhos alvo primários:** **Samsung Galaxy Tab S6 Lite** (referência para S Pen e Android) e **Mesa Digitalizadora Wacom** (referência para desktop/Linux com pressão e botões).
-> 3. **Custo zero e operação local:** Nada de serviços pagos ou APIs de nuvem obrigatórias. Reconhecimento de escrita e colaboração em tempo real ficarão em módulos isolados (*stand by* na nuvem, ativos localmente quando disponíveis, ex.: ML Kit no Android).
-> 4. **Modularidade estrita:** Cada ferramenta e funcionalidade é um módulo isolado e independente (arquitetura de plugins desacoplada). Mexer em uma ferramenta (como marca-texto ou formas) não tem impacto em nenhuma outra.
-> 5. **Idioma:** Português do Brasil.
-> 6. **Offline-first:** O aplicativo funciona 100% sem internet (PWA com cache local e banco de dados IndexedDB no próprio dispositivo).
+### Automática
+- Testes de geometria e dados (Vitest). Exemplos: quadrado tremido reconhecido como quadrado; borracha parcial divide o traço no lugar certo; espessura real x virtual com zoom de 400%.
+- Testes no navegador (Playwright): traços simulados, zoom de 0,01× a 1.000×, comparação de capturas.
+- Guardião da modularidade (dependency-cruiser).
+- Compilação sem erros.
 
----
-
-## Plano de verificação
-
-### Testes automáticos
-- `npm test`: testes de geometria e dados (Vitest). Exemplos: um quadrado desenhado tremido é reconhecido como quadrado; a borracha parcial divide o traço no lugar certo; espessura real versus virtual em zoom 400%.
-- `npm run test:navegador`: abre o quadro num navegador automático (Playwright), desenha traços simulados, aplica zoom de 0,01x a 10.000x e compara capturas de tela para garantir que o traço continua nítido.
-- `npm run build`: garante que o projeto compila sem erros.
-
-### Verificação manual (por você, no tablet)
-- **Fase 1:** abrir o link de teste no tablet, escrever rápido e conferir o medidor de latência na tela. Pergunta-chave: *"a tinta parece colada na caneta?"*
-- Ampliar muito um traço e conferir que continua liso, sem pixels.
-- Fechar e reabrir o navegador e conferir que o desenho continua lá.
+### Manual (pelo autor)
+- **Fase 1, no tablet via USB:** escrever rápido e conferir o medidor de latência. Pergunta-chave: *"a tinta parece colada na caneta?"*
+- Apoiar a mão na tela enquanto escreve: a palma não pode riscar.
+- Ampliar muito um traço: deve continuar liso.
+- Fechar e reabrir o navegador: o desenho continua lá.

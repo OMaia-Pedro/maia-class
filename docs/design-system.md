@@ -1,52 +1,96 @@
-# Diretrizes de UX e Design System — Maia Class
+# Design System — Maia Class
 
-## 1. Filosofia: "Canvas-First"
-O foco central do aplicativo é o quadro branco infinito. A interface gráfica deve ser:
-- **Discreta e Elegante:** Não rouba a atenção do usuário nem ocupa espaço útil da escrita.
-- **Flutuante e Móvel:** A barra de ferramentas principal pode ser movida livremente para o topo, rodapé ou laterais da tela (conforme a preferência de destros ou canhotos).
-- **Sem Fricção:** Ferramentas frequentes (caneta, borracha, cores rápidas) acessíveis em 1 toque.
+> [!WARNING]
+> **RASCUNHO PROVISÓRIO (D-23).** Este documento pode ser usado nas primeiras fases, mas a identidade visual definitiva (cor de destaque, logo, estilo dos menus) será definida numa sessão dedicada com o autor, antes da construção dos menus definitivos. Não invista em polimento visual baseado neste rascunho.
 
 ---
 
-## 2. Paleta de Cores e Temas
-
-### 2.1 Tema Claro (Padrão para Sala de Aula e Apresentações)
-- **Fundo do Quadro:** `#FBFBFC` (branco suave, reduz o cansaço visual em comparação ao branco puro `#FFFFFF`).
-- **Linhas/Grade de Fundo:** `#E2E8F0` (cinza sutil).
-- **Superfícies de Menu (Dock):** `#FFFFFF` com borda fina `#E2E8F0` e sombra suave elevada.
-- **Texto e Ícones Principais:** `#1E293B` (grafite escuro).
-
-### 2.2 Tema Escuro (Modo Noturno)
-- **Fundo do Quadro:** `#121214` (preto carvão fosco).
-- **Linhas/Grade de Fundo:** `#27272A`.
-- **Superfícies de Menu:** `#1E1E22` com borda fina `#3F3F46`.
-- **Texto e Ícones Principais:** `#F4F4F5`.
-
-### 2.3 Paleta de Tintas Padrão (Canetas e Formas)
-Cores de alto contraste e legibilidade:
-- Preto clássico: `#1E293B` (ou `#F8FAFC` no tema escuro)
-- Azul Royal: `#2563EB`
-- Vermelho Vibrante: `#DC2626`
-- Verde Esmeralda: `#16A34A`
-- Roxo: `#9333EA`
-- Laranja: `#EA580C`
-
-### 2.4 Paleta de Marca-Texto (Semitransparente)
-- Amarelo fluorescente: `rgba(250, 204, 21, 0.45)`
-- Verde neon: `rgba(74, 222, 128, 0.45)`
-- Azul celeste: `rgba(56, 189, 248, 0.45)`
-- Rosa pastel: `rgba(244, 114, 182, 0.45)`
-- Laranja suave: `rgba(251, 146, 60, 0.45)`
+## 1. Filosofia: o quadro em primeiro lugar
+- **Discreto:** a interface não rouba atenção nem espaço da escrita.
+- **Flutuante:** menus flutuam sobre o quadro. O menu principal poderá ser movido para topo, base ou laterais (Fase 7, D-24), pensando em destros e canhotos.
+- **Sem fricção:** caneta, borracha e cores rápidas a um toque. Menus contextuais aparecem perto da caneta (Extra 3).
+- **Feito para caneta e dedo:** todo alvo de toque tem no mínimo **44 × 44 px** (ideal 48 px), com espaço entre botões para evitar toques acidentais.
 
 ---
 
-## 3. Tipografia
-- Fonte da interface: Sistema nativo moderno (`Inter`, `system-ui`, `-apple-system`, `Roboto`, `sans-serif`) para renderização instantânea sem download de fontes pesadas.
-- Fonte do quadro para texto digitado: Opções clássicas para anotação (`Sans-serif`, `Serif`, `Monospace`, `Manuscrita`).
+## 2. Temas da interface
+
+| Elemento | Tema claro | Tema escuro (modo noturno) |
+|---|---|---|
+| Superfície dos menus | `#FFFFFF`, borda `#E2E8F0`, sombra suave | `#1E1E22`, borda `#3F3F46` |
+| Texto e ícones | `#1E293B` | `#F4F4F5` |
+| Texto secundário | `#64748B` | `#A1A1AA` |
+| Destaque (ferramenta ativa) | `#2563EB` *(provisório)* | `#3B82F6` *(provisório)* |
 
 ---
 
-## 4. Anatomia do Menu Móvel (Dock)
-- Formato de pílula flutuante com cantos arredondados (`rounded-2xl`).
-- Alça de arraste discreta para reposicionar entre as 4 bordas da tela.
-- Indicador visual ativo sutil na ferramenta selecionada.
+## 3. Papel (fundo do quadro)
+
+### 3.1 Cores de papel (item 9c)
+| Token | Claro | Uso |
+|---|---|---|
+| `papel:branco` | `#FBFBFC` | Padrão |
+| `papel:creme` | `#FAF6EC` | Leitura longa |
+| `papel:cinza` | `#F1F5F9` | Neutro |
+| `papel:lousa` | `#1F3A2E` | Estilo quadro-verde (tintas claras) |
+| `papel:escuro` | `#121214` | Padrão do modo noturno |
+
+Também deve haver seletor de cor livre.
+
+### 3.2 Padrões de fundo (item 9a)
+Liso, grade matemática, pontilhado, linhas (caderno) e partitura (pentagramas de 5 linhas).
+Cor das linhas: `#E2E8F0` no papel claro e `#27272A` no papel escuro. As linhas se adaptam ao zoom: subdividem ao aproximar e se agrupam ao afastar, mantendo um espaçamento confortável na tela.
+
+---
+
+## 4. Tintas
+
+### 4.1 Paleta da caneta
+Salva no documento como **referência** (`paleta:preto`), não como código fixo (D-18).
+
+| Token | Modo claro | Modo noturno |
+|---|---|---|
+| `paleta:preto` | `#1E293B` | `#F8FAFC` (inverte) |
+| `paleta:branco` | `#F8FAFC` | `#1E293B` (inverte) |
+| `paleta:azul` | `#2563EB` | `#60A5FA` |
+| `paleta:vermelho` | `#DC2626` | `#F87171` |
+| `paleta:verde` | `#16A34A` | `#4ADE80` |
+| `paleta:roxo` | `#9333EA` | `#C084FC` |
+| `paleta:laranja` | `#EA580C` | `#FB923C` |
+
+Exportações usam sempre a coluna "modo claro", salvo escolha contrária do usuário.
+
+### 4.2 Paleta do marca-texto
+Cor **opaca** + opacidade separada (padrão 40%). A opacidade é aplicada ao traço inteiro, para não escurecer onde ele passa sobre si mesmo.
+
+| Token | Cor base |
+|---|---|
+| `marca:amarelo` | `#FACC15` |
+| `marca:verde` | `#4ADE80` |
+| `marca:azul` | `#38BDF8` |
+| `marca:rosa` | `#F472B6` |
+| `marca:laranja` | `#FB923C` |
+
+---
+
+## 5. Tipografia
+- **Interface:** fonte do sistema (`system-ui`, Roboto no Android). Nenhum download.
+- **Caixa de texto:** fontes **empacotadas no app** (D-17), licença OFL/Apache, para funcionar offline e sair idênticas no PDF. Categorias: sem serifa, com serifa, monoespaçada e manuscrita. A lista final será escolhida na Fase 5 ([dependencias.md](dependencias.md)).
+
+---
+
+## 6. Ícones
+Biblioteca **Lucide** (licença ISC): traço fino e consistente. Tamanho 20–24 px dentro de alvos de 44–48 px.
+
+---
+
+## 7. Menu principal (dock)
+- Formato de pílula flutuante com cantos bem arredondados e sombra suave.
+- Fase 1: posição fixa (base da tela). Fase 7: alça para arrastar até topo, base ou laterais, com orientação horizontal ou vertical conforme a borda.
+- Ferramenta ativa indicada com a cor de destaque.
+- Opções de cada ferramenta abrem num painel flutuante junto ao botão da ferramenta.
+
+---
+
+## 8. Movimento
+Transições curtas (150–200 ms). Nada de animação durante o traço ou a navegação: o quadro tem prioridade total de desempenho.
