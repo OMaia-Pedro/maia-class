@@ -195,7 +195,7 @@ Os salvamentos estão assinados como "Maia <maia@local>" (provisório). O autor 
 git config user.name "NOME DO AUTOR"
 git config user.email "EMAIL DO AUTOR"
 ```
-- [ ] Concluído.
+- [x] Concluído.
 
 ### B2. Testar a pressão da Wacom no Fedora (antes de qualquer código)
 1. Instalar o Chromium (navegador de código aberto do Google, necessário para os recursos de baixa latência):
@@ -203,7 +203,7 @@ git config user.email "EMAIL DO AUTOR"
 2. Abrir no Chromium uma página de teste de caneta, por exemplo: `https://patrickhlauke.github.io/touch/pen-tracker/`
 3. Desenhar com a Wacom e conferir se a **pressão** (`pressure`) varia entre 0 e 1, e se o tipo aparece como `pen`.
 4. Repetir no Firefox, só para registro.
-- [ ] Pressão funciona no Chromium? ☐ Sim ☐ Não. *(Se não funcionar, a IA deve investigar antes da Fase 1.)*
+- [x] Pressão funciona no Chromium? ☑ Sim ☐ Não. *(Testado e aprovado pelo autor.)*
 
 ### B3. Preparar o tablet para teste via cabo USB (D-22)
 1. No computador: `sudo dnf install android-tools`
@@ -211,14 +211,14 @@ git config user.email "EMAIL DO AUTOR"
 3. **Configurações → Opções do desenvolvedor** → ativar **"Depuração USB"**.
 4. Ligar o tablet no PC pelo cabo e aceitar a mensagem "Permitir depuração USB?".
 5. No computador: `adb devices` → o tablet deve aparecer na lista como `device`.
-- [ ] Tablet aparece no `adb devices`.
+- [ ] Tablet aparece no `adb devices`. *(Pendente: o autor fará quando estiver com o tablet em mãos).*
 - *(Na Fase 1, o comando `adb reverse tcp:5173 tcp:5173` fará o tablet abrir o app em `http://localhost:5173`, que conta como conexão segura.)*
 
 ### B4. Backup no GitHub (repositório **privado**, porque o produto é comercial)
 1. Criar uma conta em github.com (se ainda não tiver).
 2. `sudo dnf install gh` e depois `gh auth login` (seguir as perguntas: GitHub.com → HTTPS → login pelo navegador).
 3. Na raiz do projeto: `gh repo create maia-class --private --source=. --push`
-- [ ] Projeto aparece no GitHub como **privado**.
+- [x] Projeto aparece no GitHub como **privado**. *(Repositório criado: https://github.com/OMaia-Pedro/maia-class)*
 
 ---
 
