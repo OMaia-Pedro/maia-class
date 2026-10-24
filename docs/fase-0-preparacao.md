@@ -19,7 +19,7 @@ A lista de peças foi escrita à mão e está desatualizada.
 npm install react@latest react-dom@latest lucide-react@latest clsx@latest tailwind-merge@latest perfect-freehand@latest yjs@latest
 npm install -D vite@latest @vitejs/plugin-react@latest typescript@latest @types/react@latest @types/react-dom@latest
 ```
-- [ ] Concluído. Se aparecer conflito de versões (`ERESOLVE`), **pare e relate**.
+- [x] Concluído. Se aparecer conflito de versões (`ERESOLVE`), **pare e relate**.
 
 ### A2. Trocar o Tailwind 3 pelo Tailwind 4
 O Tailwind 4 não usa mais `tailwind.config.js` nem `postcss.config.js`.
@@ -44,7 +44,7 @@ export default defineConfig({
   },
 });
 ```
-- [ ] Concluído. (A linha `@import "tailwindcss";` no CSS será criada junto com o código, na Fase 1. **Não crie o arquivo CSS agora.**)
+- [x] Concluído. (A linha `@import "tailwindcss";` no CSS será criada junto com o código, na Fase 1. **Não crie o arquivo CSS agora.**)
 
 ### A3. Instalar as ferramentas de verificação e as peças da Fase 1
 ```bash
@@ -52,7 +52,7 @@ npm install y-indexeddb@latest
 npm install -D vitest@latest dependency-cruiser@latest @playwright/test@latest vite-plugin-pwa@latest
 npx playwright install chromium
 ```
-- [ ] Concluído. Se o `playwright install` reclamar do sistema operacional, mas baixar o Chromium, está ok. Se não baixar, relate e siga para o passo A4.
+- [x] Concluído. Se o `playwright install` reclamar do sistema operacional, mas baixar o Chromium, está ok. Se não baixar, relate e siga para o passo A4.
 
 ### A4. Criar o guardião da modularidade
 Criar o arquivo `app/.dependency-cruiser.cjs` com **exatamente** este conteúdo (não altere as regras):
@@ -130,7 +130,7 @@ module.exports = {
   },
 };
 ```
-- [ ] Concluído.
+- [x] Concluído.
 
 ### A5. Comandos de verificação no `app/package.json`
 Substituir **apenas** o bloco `"scripts"` por:
@@ -149,7 +149,7 @@ Rodar para conferir:
 npm run test
 npm run regras
 ```
-- [ ] Os dois rodaram sem erro.
+- [x] Os dois rodaram sem erro.
 - **Esperado:** `npm run verificar` e `npm run build` **falham** com o erro `TS18003: No inputs were found` porque ainda não existe código. **Isso é normal. Não crie arquivos para "consertar".**
 
 ### A6. Limpar o `app/index.html`
@@ -169,13 +169,13 @@ Substituir **todo** o conteúdo por:
   </body>
 </html>
 ```
-- [ ] Concluído.
+- [x] Concluído.
 
 ### A7. Conferir licenças e atualizar `docs/dependencias.md`
 Para cada peça instalada, rodar `npm view <nome> license` e conferir se está na lista permitida (MIT, Apache-2.0, BSD, ISC).
 - Se **alguma** não estiver, **pare e relate**.
 - Atualizar **somente a coluna "Status"** em `docs/dependencias.md`: "A instalar" → "Instalada" para y-indexeddb, Vitest, Playwright, dependency-cruiser e vite-plugin-pwa; Tailwind CSS → "Instalada (v4)". Acrescentar uma linha para `@tailwindcss/vite` (MIT, Fase 0, Instalada).
-- [ ] Concluído.
+- [x] Concluído.
 
 ### A8. Salvar no Git
 ```bash
@@ -183,7 +183,7 @@ cd "/home/omaia/Documents/Maia Class"
 git add -A
 git commit -m "Fase 0: peças atualizadas, Tailwind 4, guardião da modularidade e comandos de verificação"
 ```
-- [ ] Concluído.
+- [x] Concluído.
 
 ---
 

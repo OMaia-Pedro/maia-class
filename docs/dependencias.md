@@ -10,17 +10,18 @@ Licenças permitidas: MIT, Apache-2.0, BSD, ISC (código) e SIL OFL (fontes).
 | TypeScript | Linguagem com verificação de erros | Apache-2.0 | 0 | Instalada |
 | Vite | Servidor de teste e empacotador | MIT | 0 | Instalada |
 | React + React DOM | Casca da interface (menus) | MIT | 0 | Instalada |
-| Tailwind CSS | Estilos da interface | MIT | 0 | Instalada (atualizar p/ versão atual) |
+| Tailwind CSS | Estilos da interface | MIT | 0 | Instalada (v4) |
+| @tailwindcss/vite | Plugin oficial Tailwind 4 para Vite | MIT | 0 | Instalada |
 | lucide-react | Ícones | ISC | 0 | Instalada |
 | clsx / tailwind-merge | Utilitários de estilo | MIT | 0 | Instaladas |
 | perfect-freehand | Traço com pressão (modo fluido) | MIT | 1 | Instalada |
 | Yjs | Documento, desfazer/refazer, colaboração futura | MIT | 1 | Instalada |
-| y-indexeddb | Salvar o documento Yjs no aparelho | MIT | 1 | A instalar |
-| Vitest | Testes automáticos | MIT | 0 | A instalar |
-| Playwright | Testes no navegador automático | Apache-2.0 | 1 | A instalar |
-| dependency-cruiser | Guardião da modularidade (D-15) | MIT | 0 | A instalar |
+| y-indexeddb | Salvar o documento Yjs no aparelho | MIT | 1 | Instalada |
+| Vitest | Testes automáticos | MIT | 0 | Instalada |
+| Playwright | Testes no navegador automático | Apache-2.0 | 1 | Instalada |
+| dependency-cruiser | Guardião da modularidade (D-15) | MIT | 0 | Instalada |
 | @vitejs/plugin-basic-ssl | HTTPS de teste (alternativa ao cabo USB, D-22) | MIT | 1 | Opcional |
-| vite-plugin-pwa | App instalável e offline | MIT | 1 | A instalar |
+| vite-plugin-pwa | App instalável e offline | MIT | 1 | Instalada |
 | rbush | Índice espacial (desenhar só o que está visível) | MIT | 3 | A instalar |
 | pdfjs-dist (pdf.js) | Abrir/importar PDF | Apache-2.0 | 5 | A instalar |
 | jsPDF | Exportar PDF vetorial | MIT | 6 | A instalar |
